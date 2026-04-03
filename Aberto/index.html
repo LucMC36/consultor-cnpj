@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta Integrada de CNPJ</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            max-width: 500px; 
+            margin: auto; 
+            -webkit-user-select: auto !important;
+            user-select: auto !important;
+        }
+        
+        .container { 
+            border: 1px solid #ccc; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1); 
+        }
+        
+        input, .btn-consultar { 
+            padding: 10px; 
+            margin-top: 10px; 
+            width: 100%; 
+            box-sizing: border-box; 
+        }
+        
+        .btn-consultar { 
+            background-color: #eeff00; 
+            color: rgb(0, 0, 0); 
+            border: none; 
+            cursor: pointer; 
+            border-radius: 4px; 
+            font-size: 16px;
+        }
+        
+        .btn-consultar:hover { 
+            background-color: #d9e900; 
+        }
+        
+        #resultado { 
+            margin-top: 20px; 
+            padding: 15px; 
+            background-color: #f9f9f9; 
+            border-left: 4px solid #eeff00; 
+            display: none; 
+        }
+
+        /* --- NOVOS ESTILOS PARA OS ITENS COPIÁVEIS --- */
+        .item-dado {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+
+        .item-texto {
+            flex-grow: 1;
+            margin-right: 10px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .btn-icone {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-icone:hover {
+            background: #e9ecef;
+        }
+        
+        .erro { 
+            border-left-color: red !important; 
+            color: red; 
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Consulta de CNPJ</h2>
+    <p>Digite o CNPJ abaixo:</p>
+    
+    <input type="text" id="cnpjInput" placeholder="Ex: 00.000.000/0001-91" />
+    <button class="btn-consultar" onclick="buscarDadosCNPJ()">Consultar</button>
+
+    <div id="resultado"></div>
+</div>
+
+<script>
+    // Máscara do CNPJ
+    document.getElementById('cnpjInput').addEventListener('input', function (e) {
+        let valor = e.target.value.replace(/\D/g, ''); 
+        if (valor.length > 14) valor = valor.slice(0, 14);
+
+        valor = valor.replace(/^(\d{2})(\d)/, '$1.$2');
+        valor = valor.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+        valor = valor.replace(/\.(\d{3})(\d)/, '.$1/$2');
+        valor = valor.replace(/(\d{4})(\d)/, '$1-$2');
+
+        e.target.value = valor;
+    });
+
+    async function buscarDadosCNPJ() {
+        let cnpjComMascara = document.getElementById('cnpjInput').value;
+        const divResultado = document.getElementById('resultado');
+        
+        if (!cnpjComMascara) {
+            alert("Por favor, digite um CNPJ.");
+            return;
+        }
+
+        const cnpjLimpo = cnpjComMascara.replace(/\D/g, '');
+
+        divResultado.style.display = 'block';
+        divResultado.className = '';
+        divResultado.innerHTML = 'Buscando dados no back-end...';
+
+        try {
+            const response = await fetch(`http://localhost:8000/api/cnpj/${cnpjLimpo}`);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.detail || "Erro desconhecido na consulta.");
+            }
+
+            // Renderiza cada linha de dado com seu próprio botão de copiar
+            divResultado.innerHTML = `
+                <div class="item-dado">
+                    <div class="item-texto"><strong>Razão Social:</strong> <br>${data.razao_social}</div>
+                    <button class="btn-icone" onclick="copiarItem('${data.razao_social}', this)" title="Copiar Razão Social">📋</button>
+                </div>
+                
+                <div class="item-dado">
+                    <div class="item-texto"><strong>Nome Fantasia:</strong> <br>${data.nome_fantasia}</div>
+                    <button class="btn-icone" onclick="copiarItem('${data.nome_fantasia}', this)" title="Copiar Nome Fantasia">📋</button>
+                </div>
+                
+                <div class="item-dado">
+                    <div class="item-texto"><strong>Situação:</strong> <br>${data.situacao_cadastral}</div>
+                    <button class="btn-icone" onclick="copiarItem('${data.situacao_cadastral}', this)" title="Copiar Situação">📋</button>
+                </div>
+                
+                <div class="item-dado">
+                    <div class="item-texto"><strong>Endereço:</strong> <br>${data.endereco_completo}</div>
+                    <button class="btn-icone" onclick="copiarItem('${data.endereco_completo}', this)" title="Copiar Endereço">📋</button>
+                </div>
+            `;
+        } catch (error) {
+            divResultado.className = 'erro';
+            divResultado.innerHTML = `<p><strong>Erro:</strong> ${error.message}</p>`;
+        }
+    }
+
+    // Função genérica que recebe o texto específico e o botão que foi clicado
+    async function copiarItem(texto, btnElement) {
+        try {
+            await navigator.clipboard.writeText(texto);
+            
+            // Troca o ícone para um check e depois volta
+            const iconeOriginal = btnElement.innerHTML;
+            btnElement.innerHTML = "✅";
+            
+            setTimeout(() => {
+                btnElement.innerHTML = iconeOriginal;
+            }, 1500);
+
+        } catch (err) {
+            alert("Falha ao copiar.");
+            console.error(err);
+        }
+    }
+</script>
+
+</body>
+</html>
