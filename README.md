@@ -85,10 +85,12 @@ Acesse em http://127.0.0.1:8000
 
 <img width="960" height="510" alt="Foto demonstração #1" src="https://github.com/user-attachments/assets/3685336c-c156-4a69-b803-f15c412e7741" />
 
-📝 Licença
+---
+
+# 📝 Licença
 Este projeto está sob a licença MIT. Isso significa que você pode usar, copiar e modificar o código livremente. Veja o arquivo LICENSE para mais detalhes.
 
-👤 Autor
+# 👤 Autor
 Desenvolvido por LucMC36.
 
 Sinta-se à vontade para dar uma ⭐️ no projeto se ele te ajudou!
