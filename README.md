@@ -79,6 +79,12 @@ uvicorn main:app --reload
 
 Acesse em http://127.0.0.1:8000
 
+### Fotos de demontração da interface e uso:
+
+<img width="960" height="510" alt="Foto demonstração #2" src="https://github.com/user-attachments/assets/c18d0ddf-8895-4bc3-8e1b-1fd6cf73c56b" />
+
+<img width="960" height="510" alt="Foto demonstração #1" src="https://github.com/user-attachments/assets/3685336c-c156-4a69-b803-f15c412e7741" />
+
 📝 Licença
 Este projeto está sob a licença MIT. Isso significa que você pode usar, copiar e modificar o código livremente. Veja o arquivo LICENSE para mais detalhes.
 
